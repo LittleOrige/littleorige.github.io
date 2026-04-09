@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我们的爱之物语</title>
+    <style>
+        :root {
+            --pink-main: #ff69b4;
+            --pink-deep: #ff1493;
+            --white-alpha: rgba(255, 255, 255, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; overflow: hidden; background: #000; width: 100vw; height: 100vh; }
+
+        /* ===== 首页样式 ===== */
+        #homepage {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(135deg, #ffe6ea 0%, #ffb6c9 100%);
+            transition: opacity 1s;
+        }
+
+        .envelope {
+            background: white; padding: 50px 80px; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3);
+            text-align: center; animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        .open-btn {
+            background: linear-gradient(45deg, var(--pink-main), var(--pink-deep));
+            color: white; border: none; padding: 15px 40px; font-size: 1.3em;
+            border-radius: 50px; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 5px 20px rgba(255, 105, 180, 0.4);
+        }
+
+        /* ===== 爱心爆发层 ===== */
+        #heart-burst { position: fixed; inset: 0; z-index: 150; pointer-events: none; }
+        .ani-heart { position: absolute; font-size: 30px; animation: burst 1.5s forwards; }
+        @keyframes burst { 
+            0% { transform: translate(0,0) scale(1); opacity: 1; } 
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } 
+        }
+
+        /* ===== 沉浸式全屏场景 ===== */
+        #story-page { position: fixed; inset: 0; z-index: 140; display: none; }
+        .scene {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            opacity: 0; transition: opacity 2s ease-in-out;
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            display: flex; justify-content: center; align-items: flex-end;
+            padding-bottom: 10vh;
+        }
+        .scene.active { opacity: 1; }
+
+        .text-card {
+            background: var(--white-alpha); backdrop-filter: blur(10px);
+            padding: 25px 50px; border-radius: 15px; text-align: center;
+            max-width: 80%; border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            animation: slideUp 1s ease-out;
+        }
+        @keyframes slideUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        .text-card h2 { color: var(--pink-deep); margin-bottom: 10px; font-size: 1.8em; }
+        .text-card p { color: #444; font-size: 1.2em; line-height: 1.6; }
+
+        /* ===== 问答浮窗 ===== */
+        #quiz-page {
+            display: none; position: fixed; inset: 0; z-index: 200;
+            background: rgba(255, 245, 247, 0.7); backdrop-filter: blur(15px);
+        }
+        .quiz-card {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 480px; background: white;
+            padding: 40px; border-radius: 25px; box-shadow: 0 15px 50px rgba(255, 105, 180, 0.2);
+            text-align: center;
+        }
+        .opt-btn {
+            width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #ffdae9;
+            border-radius: 12px; background: #fff9fb; cursor: pointer; transition: 0.3s;
+            font-size: 1.1em;
+        }
+        .opt-btn:hover { border-color: var(--pink-main); background: #fff0f5; transform: scale(1.02); }
+
+        /* 动画元素 */
+        .reward-flower { position: fixed; font-size: 35px; animation: flowerUp 2.5s forwards; z-index: 300; }
+        @keyframes flowerUp { to { transform: translateY(-600px) rotate(360deg); opacity: 0; } }
+
+        .punish-hammer { position: fixed; font-size: 100px; z-index: 310; animation: hammerSmash 0.6s forwards; pointer-events: none; }
+        @keyframes hammerSmash { 0% { transform: translate(-50%, -200%) rotate(-45deg); } 50% { transform: translate(-50%, -50%) rotate(0); } 100% { opacity: 0; } }
+
+        .shake { animation: shake 0.1s 5; }
+        @keyframes shake { 0%,100% {transform:translate(0,0)} 50% {transform:translate(-8px,8px)} }
+    </style>
+</head>
+<body id="body">
+
+    <div id="homepage">
+        <div class="envelope">
+            <h1>🌹 我们的 22 章爱之物语 🌹</h1>
+            <p style="margin: 20px 0; color: #888;">穿越时光的走廊，重温每一刻的心动</p>
+            <button class="open-btn" onclick="startJourney()">开启回忆录 💖</button>
+        </div>
+    </div>
+
+    <div id="heart-burst"></div>
+
+    <div id="story-page"></div>
+
+    <div id="quiz-page">
+        <div class="quiz-card">
+            <div id="q-level" style="color:var(--pink-main); font-weight:bold; margin-bottom:10px;">LEVEL 1</div>
+            <h2 id="q-text" style="margin-bottom:25px; color: #444;"></h2>
+            <div id="options"></div>
+        </div>
+    </div>
+
+    <script>
+        // 配置 22 张插画的主题与文案
+        const storyData = [
+            { t: "第1章：缘起", d: "在那一天的转角，世界仿佛亮起了光。" },
+            { t: "第2章：初见", d: "笨拙的开场白，却开启了最美的遇见。" },
+            { t: "第3章：心动", d: "每一次收到你的消息，呼吸都会漏掉一拍。" },
+            { t: "第4章：试探", d: "在推拉的暧昧中，我听到了心里的声音。" },
+            { t: "第5章：表白", d: "那一晚的晚风很温柔，你说你也是。" },
+            { t: "第6章：牵手", d: "握住你的那一刻，我决定再也不放手。" },
+            { t: "第7章：电影", d: "屏幕里的故事很精彩，但我只侧头看你。" },
+            { t: "第8章：雨中", d: "同撑一把伞，雨滴都变成了甜甜的味道。" },
+            { t: "第9章：惊喜", d: "每一个细小的节日，我都想给你满满仪式感。" },
+            { t: "第10章：旅行", d: "只要身边是你，去哪里都是最好的目的地。" },
+            { t: "第11章：磨合", d: "偶尔的争执，是为了让我们拥抱得更紧。" },
+            { t: "第12章：相拥", d: "你的怀抱，是我对抗世界的所有底气。" },
+            { t: "第13章：日常", d: "最简单的柴米油盐，因为有你而变得浪漫。" },
+            { t: "第14章：依靠", d: "累的时候，你的肩膀是我永远的避风港。" },
+            { t: "第15章：生病", d: "药在杯里，你在我心里，温暖如初。" },
+            { t: "第16章：星空", d: "在那片繁星下，我许愿我们要永远在一起。" },
+            { t: "第17章：支撑", d: "无论遇到什么困难，你都是我的第一选择。" },
+            { t: "第18章：梦想", d: "在关于未来的蓝图里，每一笔都有你的名字。" },
+            { t: "第19章：诺言", d: "往后余生，风雪是你，平淡也是你。" },
+            { t: "第20章：执着", d: "跨越时间的距离，爱你的心从未动摇。" },
+            { t: "第21章：永恒", d: "故事还在继续，我们的爱没有终点。" },
+            { t: "终章：未完待续", d: "余生的每一章，我们继续慢慢书写..." }
+        ];
+
+        // 1. 初始化场景：引用本地 images 文件夹
+        function initScenes() {
+            const container = document.getElementById('story-page');
+            storyData.forEach((item, index) => {
+                const scene = document.createElement('div');
+                scene.className = 'scene';
+                
+                // 引用本地 images 文件夹中的图片 (1.jpg, 2.jpg... 22.jpg)
+                // 如果你的图片是 png，请将 .jpg 改为 .png
+                const imgUrl = `images/${index + 1}.jpg`; 
+                scene.style.backgroundImage = `url('${imgUrl}')`;
+                
+                scene.innerHTML = `
+                    <div class="text-card">
+                        <h2>${item.t}</h2>
+                        <p>${item.d}</p>
+                    </div>
+                `;
+                container.appendChild(scene);
+            });
+        }
+
+        // 2. 开启旅程
+        function startJourney() {
+            document.getElementById('homepage').style.opacity = '0';
+            
+            // 粉色爱心爆发效果
+            const burst = document.getElementById('heart-burst');
+            for(let i=0; i<80; i++){
+                const h = document.createElement('div');
+                h.className = 'ani-heart';
+                h.innerHTML = ['❤️','💖','💗','💕','✨'][Math.floor(Math.random()*5)];
+                h.style.left = '50%'; h.style.top = '50%';
+                const tx = (Math.random()-0.5) * 1200 + 'px';
+                const ty = (Math.random()-0.5) * 1200 + 'px';
+                h.style.setProperty('--tx', tx);
+                h.style.setProperty('--ty', ty);
+                burst.appendChild(h);
+                setTimeout(()=>h.remove(), 1500);
+            }
+
+            initScenes();
+            setTimeout(() => {
+                document.getElementById('homepage').style.display = 'none';
+                document.getElementById('story-page').style.display = 'block';
+                playStoryFlow();
+            }, 1000);
+        }
+
+        // 3. 自动轮播场景逻辑
+        let sceneIdx = 0;
+        function playStoryFlow() {
+            const scenes = document.querySelectorAll('.scene');
+            const showNext = () => {
+                // 隐藏上一个
+                if(sceneIdx > 0) {
+                    scenes[sceneIdx-1].classList.remove('active');
+                }
+                
+                // 显示当前
+                if(sceneIdx < scenes.length) {
+                    scenes[sceneIdx].classList.add('active');
+                    sceneIdx++;
+                    setTimeout(showNext, 4500); // 每张停留4.5秒
+                } else {
+                    // 全部播完进入问答
+                    startQuiz();
+                }
+            };
+            showNext();
+        }
+
+        // 4. 问答逻辑
+        const quizData = [
+            { q: "刚才的故事一共有多少章？", o: ["10章", "22章", "99章", "记不清了"], a: 1 },
+            { q: "我们第一次见面的天气是？", o: ["晴天", "雨天", "阴天", "不记得了"], a: 0 },
+            { q: "我生病的时候你最常说？", o: ["多喝热水", "药在桌上", "我这就到", "早点休息"], a: 2 },
+            { q: "未来的日子里，我们要？", o: ["继续努力", "执子之手", "相爱相杀", "以上全是"], a: 3 },
+            { q: "最后，你爱我吗？", o: ["爱", "超级爱", "永远爱", "你猜"], a: 2 }
+        ];
+
+        let qIdx = 0;
+        function startQuiz() {
+            document.getElementById('quiz-page').style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if(qIdx >= quizData.length) {
+                alert("恭喜通关！你就是我的一百分爱人！❤️");
+                location.reload();
+                return;
+            }
+            const q = quizData[qIdx];
+            document.getElementById('q-level').innerText = `默契大考验 第 ${qIdx + 1} 关`;
+            document.getElementById('q-text').innerText = q.q;
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            q.o.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if(i === q.a) {
+                        // 答对奖励花朵
+                        for(let j=0; j<20; j++){
+                            const f = document.createElement('div');
+                            f.className = 'reward-flower';
+                            f.innerHTML = '🌸';
+                            f.style.left = Math.random()*100+'vw'; f.style.top='100vh';
+                            document.body.appendChild(f);
+                            setTimeout(()=>f.remove(), 2500);
+                        }
+                    } else {
+                        // 答错震动+大锤
+                        document.getElementById('body').classList.add('shake');
+                        const h = document.createElement('div');
+                        h.className = 'punish-hammer';
+                        h.innerHTML = '🔨';
+                        h.style.left = '50%'; h.style.top = '50%';
+                        document.body.appendChild(h);
+                        setTimeout(() => {
+                            h.remove();
+                            document.getElementById('body').classList.remove('shake');
+                        }, 600);
+                    }
+                    qIdx++;
+                    setTimeout(loadQuestion, 1200);
+                };
+                container.appendChild(btn);
+            });
+        }
+    </script>
+</body>
+</html>
